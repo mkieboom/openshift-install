@@ -3,6 +3,7 @@
 # Customized version of gshipley's installation script
 # source: https://github.com/gshipley/installcentos
 export VERSION=${VERSION:="3.9.0"}
+export VERSIONSHORT=${VERSIONSHORT:="3.9"}
 export CONTAINERIZED=${USERNAME:=False}
 export DOMAIN=${DOMAIN:=$(hostname)}
 export USERNAME=${USERNAME:=admin}
@@ -33,7 +34,7 @@ yum install -y  telnet wget git zile nano net-tools docker \
 echo "Launching docker..."
 systemctl start docker
 systemctl enable docker
-echo "Finished launching docker..."
+echo "Finished launching docker."
 
 # Install epel release
 yum install -y wget
@@ -59,7 +60,7 @@ yum -y --enablerepo=epel install ansible pyOpenSSL
 [ ! -d openshift-ansible ] && git clone https://github.com/openshift/openshift-ansible.git
 
 # Checkout the right Openshift release version
-cd openshift-ansible && git fetch && git checkout release-3.9 && cd ..
+cd openshift-ansible && git fetch && git checkout release-${VERSIONSHORT} && cd ..
 
 # Set the /etc/hosts file content
 cat <<EOD >> /etc/hosts
@@ -82,18 +83,20 @@ oc adm policy add-cluster-role-to-user cluster-admin ${USERNAME}
 
 systemctl restart origin-master-api
 
-echo "******"
+oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/
 
+echo "******"
 echo "* Your console is https://$DOMAIN:$API_PORT"
 echo "* Your username is $USERNAME "
 echo "* Your password is $PASSWORD "
 echo "*"
 echo "* Login using:"
-echo "*"
 echo "$ oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/"
+echo "*"
+echo "* Add following line to your clients /etc/hosts file:"
+echo "${IP}   $(hostname)"
+echo "*"
 echo "******"
-
-oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/
 
 #cut -d. -f1,2 3.9.0
 #awk -F_ 'BEGIN {OFS="_"} /^>gi/ {print $1,$2} ! /^>gi/ {print}' 3.9.0
