@@ -3,6 +3,7 @@
 # Customized version of gshipley's installation script
 # source: https://github.com/gshipley/installcentos
 export VERSION=${VERSION:="3.9.0"}
+export CONTAINERIZED=${USERNAME:=False}
 export DOMAIN=${DOMAIN:=$(hostname)}
 export USERNAME=${USERNAME:=admin}
 export PASSWORD=${PASSWORD:=admin}
@@ -29,8 +30,10 @@ yum install -y  telnet wget git zile nano net-tools docker \
                                 java-1.8.0-openjdk-headless "@Development Tools"
 
 # Start docker
-systemctl restart docker
+echo "Launching docker..."
+systemctl start docker
 systemctl enable docker
+echo "Finished launching docker..."
 
 # Install epel release
 yum install -y wget
@@ -87,7 +90,7 @@ echo "* Your password is $PASSWORD "
 echo "*"
 echo "* Login using:"
 echo "*"
-echo "$ oc login -u ${USERNAME} -p ${PASSWORD} https://console.$DOMAIN:$API_PORT/"
+echo "$ oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/"
 echo "******"
 
 oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/
