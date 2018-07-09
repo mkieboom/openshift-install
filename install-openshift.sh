@@ -21,6 +21,14 @@ if [ "$aws" -eq "1" ]; then
    yum-config-manager --enable rhui-REGION-rhel-server-extras
 fi
 
+# Install epel release
+yum install -y wget
+wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm
+rpm -ivh /tmp/epel-release-latest-7.noarch.rpm
+
+# Disable the EPEL repository globally so that is not accidentally used during later steps of the installation
+sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
+
 # install the following base packages
 yum install -y  telnet wget git zile nano net-tools docker \
                                 bind-utils iptables-services \
@@ -35,14 +43,6 @@ echo "Launching docker..."
 systemctl start docker
 systemctl enable docker
 echo "Finished launching docker."
-
-# Install epel release
-yum install -y wget
-wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm
-rpm -ivh /tmp/epel-release-latest-7.noarch.rpm
-
-# Disable the EPEL repository globally so that is not accidentally used during later steps of the installation
-sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
 
 # Start NetworkManager if not already running
 systemctl | grep "NetworkManager.*running"
