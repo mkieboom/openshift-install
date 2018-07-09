@@ -51,6 +51,11 @@ if [ $? -eq 1 ]; then
         systemctl enable NetworkManager
 fi
 
+if [ ! -f ~/.ssh/id_rsa ]; then
+        ssh-keygen -q -f ~/.ssh/id_rsa -N ""
+        cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+        ssh -o StrictHostKeyChecking=no root@$IP "pwd" < /dev/null
+fi
 
 
 # install the packages for Ansible
@@ -72,11 +77,9 @@ cp inventory.ini inventory.clone
 envsubst < inventory.clone > inventory.ini
 
 # Launch the pre-requisites check
-export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i inventory.ini openshift-ansible/playbooks/prerequisites.yml
 
 # Launch the ansible installation to deploy a cluster
-export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i inventory.ini openshift-ansible/playbooks/deploy_cluster.yml
 
 # 
