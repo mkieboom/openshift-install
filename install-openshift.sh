@@ -72,9 +72,11 @@ cp inventory.ini inventory.clone
 envsubst < inventory.clone > inventory.ini
 
 # Launch the pre-requisites check
+export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i inventory.ini openshift-ansible/playbooks/prerequisites.yml
 
 # Launch the ansible installation to deploy a cluster
+export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i inventory.ini openshift-ansible/playbooks/deploy_cluster.yml
 
 # 
