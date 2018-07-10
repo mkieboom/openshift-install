@@ -4,7 +4,7 @@
 # source: https://github.com/gshipley/installcentos
 export VERSION=${VERSION:="3.9.0"}
 export VERSIONSHORT=${VERSIONSHORT:="3.9"}
-export CONTAINERIZED=${USERNAME:=False}
+export CONTAINERIZED=${CONTAINERIZED:=False}
 export DOMAIN=${DOMAIN:=$(hostname)}
 export USERNAME=${USERNAME:=admin}
 export PASSWORD=${PASSWORD:=admin}
@@ -13,6 +13,14 @@ export API_PORT=${API_PORT:="8443"}
 
 export METRICS="False"
 export LOGGING="False"
+
+
+# exit the script when any command fails
+set -e
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "### SCRIPT FAILED ###\n" echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
 
 # When on AWS environment, enable 'extra's repo containing ansible etc.
