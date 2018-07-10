@@ -101,14 +101,16 @@ ansible-playbook -i inventory.ini openshift-ansible/playbooks/prerequisites.yml
 # Launch the ansible installation to deploy a cluster
 ansible-playbook -i inventory.ini openshift-ansible/playbooks/deploy_cluster.yml
 
-# 
+# Set the user password and add cluster admin role to user
 htpasswd -b /etc/origin/master/htpasswd ${USERNAME} ${PASSWORD}
 oc adm policy add-cluster-role-to-user cluster-admin ${USERNAME}
 
+# Restart the origin master api and login
 systemctl restart origin-master-api
-
+sleep 3
 oc login -u ${USERNAME} -p ${PASSWORD} https://$DOMAIN:$API_PORT/
 
+# Print out the config details
 echo "******"
 echo "* Your console is https://$DOMAIN:$API_PORT"
 echo "* Your username is $USERNAME "
