@@ -3,7 +3,7 @@
 # Customized version of gshipley's installation script
 # source: https://github.com/gshipley/installcentos
 export VERSION=${VERSION:="3.9.0"}
-export VERSIONSHORT=${VERSIONSHORT:="3.9"}
+export VERSIONSHORT=${echo $VERSION |sed "s/.[^.]*$//"}
 export CONTAINERIZED=${CONTAINERIZED:=False}
 export DOMAIN=${DOMAIN:=$(hostname)}
 export USERNAME=${USERNAME:=admin}
@@ -20,19 +20,26 @@ set -e
 # keep track of the last executed command
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
-trap 'echo "### SCRIPT FAILED ###\n" echo "\"${last_command}\" command filed with exit code $?."' EXIT
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+ERRORHEADER=$'\n\n######## SCRIPT FAILED - LAST COMMAND: #########\n\n'
+ERRORFOOTER=$'\n\n######## FIX THE ERROR AND RUN AGAIN #########\n'
+trap 'echo -e "${RED}$ERRORHEADER\"${last_command}\" command filed with exit code $?. $ERRORFOOTER${NC}"' EXIT
 
 
-# When on AWS environment, enable 'extra's repo containing ansible etc.
+# When on AWS environment, enable 'extra's repo containing ansible, docker etc.
 aws=$(grep -s -o 'ec2' /sys/hypervisor/uuid | wc -l)
 if [ "$aws" -eq "1" ]; then
    yum-config-manager --enable rhui-REGION-rhel-server-extras
 fi
 
 # Install epel release
-yum install -y wget
-wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm
-rpm -ivh /tmp/epel-release-latest-7.noarch.rpm
+epelinstalled=$(rpm -qa|grep epel-release|wc -l)
+if [ "$epelinstalled" -eq "0" ]; then
+  yum install -y wget
+  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm
+  rpm -ivh /tmp/epel-release-latest-7.noarch.rpm
+fi
 
 # Disable the EPEL repository globally so that is not accidentally used during later steps of the installation
 sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
@@ -59,14 +66,18 @@ if [ $? -eq 1 ]; then
         systemctl enable NetworkManager
 fi
 
+
+# Generate ssh keys for ansible to ssh
 if [ ! -f ~/.ssh/id_rsa ]; then
         ssh-keygen -q -f ~/.ssh/id_rsa -N ""
+fi
+# Add the generated key to the authorized keys file
+if [ -f ~/.ssh/id_rsa.pub ]; then
         cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
         ssh -o StrictHostKeyChecking=no root@$IP "pwd" < /dev/null
 fi
 
-
-# install the packages for Ansible
+# Install the packages for Ansible
 yum -y --enablerepo=epel install ansible pyOpenSSL
 
 # Clone the openshift-ansible project
@@ -110,9 +121,3 @@ echo "* Add following line to your clients /etc/hosts file:"
 echo "${IP}   $(hostname)"
 echo "*"
 echo "******"
-
-#cut -d. -f1,2 3.9.0
-#awk -F_ 'BEGIN {OFS="_"} /^>gi/ {print $1,$2} ! /^>gi/ {print}' 3.9.0
-#awk -F_ '{print $1 (NF>1? FS $2 : "")}' 3.9.0
-#echo '3.9.0' |sed 's/\d\.\d.*//'
-
