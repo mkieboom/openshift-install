@@ -3,7 +3,7 @@
 # Customized version of gshipley's installation script
 # source: https://github.com/gshipley/installcentos
 export VERSION=${VERSION:="3.9.0"}
-export VERSIONSHORT=${echo $VERSION |sed "s/.[^.]*$//"}
+export VERSIONSHORT=$(echo $VERSION |sed "s/.[^.]*$//")
 export CONTAINERIZED=${CONTAINERIZED:=False}
 export DOMAIN=${DOMAIN:=$(hostname)}
 export USERNAME=${USERNAME:=admin}
