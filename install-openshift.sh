@@ -45,7 +45,7 @@ fi
 sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
 
 # install the following base packages
-yum install -y  telnet wget git zile nano net-tools docker \
+yum install --enablerepo=epel -y telnet wget git zile nano net-tools docker \
                                 bind-utils iptables-services \
                                 bridge-utils bash-completion \
                                 kexec-tools sos psacct openssl-devel \
@@ -78,7 +78,7 @@ if [ -f ~/.ssh/id_rsa.pub ]; then
 fi
 
 # Install the packages for Ansible
-yum -y --enablerepo=epel install ansible pyOpenSSL
+yum install --enablerepo=epel -y ansible pyOpenSSL
 
 # Clone the openshift-ansible project
 [ ! -d openshift-ansible ] && git clone https://github.com/openshift/openshift-ansible.git
